@@ -1,0 +1,11 @@
+{
+  "Current": {
+    "Path": "C:\\Users\\OMM\\.docker\\cli-plugins\\docker-model.exe",
+    "Version": "v1.1.28"
+  },
+  "Name": "model",
+  "Previous": {
+    "Path": "",
+    "Version": "v1.1.25"
+  }
+}
