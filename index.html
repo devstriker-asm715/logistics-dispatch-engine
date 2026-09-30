@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrahamAI | Professional Investor Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-slate-950 text-slate-200">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col" aria-label="Primary sidebar">
+            <div class="p-6 text-2xl font-bold text-blue-500 border-b border-slate-800">
+                Graham<span class="text-white">AI</span>
+
+            </div>
+
+            <nav class="flex-1 overflow-y-auto py-4" aria-label="Primary navigation">
+                <div class="px-4 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Main</div>
+                <a href="#" class="sidebar-item active-tab flex items-center px-6 py-3 transition-all">
+                    <span class="mr-3">🏠</span> Dashboard
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-6 py-3 transition-all">
+                    <span class="mr-3">📈</span> Portfolio
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-6 py-3 transition-all">
+                    <span class="mr-3">💼</span> Investments
+                </a>
+                <button onclick="switchNav('explore', this)"
+                    class="sidebar-item active-tab w-full flex items-center px-6 py-2.5 text-sm">
+                    <span class="mr-3">🌎</span> Explore Giants
+                </button>
+
+                <div class="px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Banking</div>
+                <a href="#" class="sidebar-item flex items-center px-6 py-3 transition-all">
+                    <span class="mr-3">💳</span> Transactions
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-6 py-3 transition-all">
+                    <span class="mr-3">🎯</span> Goals
+                </a>
+
+                <div class="px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Analysis</div>
+                <a href="#" class="sidebar-item flex items-center px-6 py-3 transition-all">
+                    <span class="mr-3">📊</span> Reports
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-6 py-3 transition-all">
+                    <span class="mr-3">🛡</span> Risk Profile
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-6 py-3 transition-all">
+                    <span class="mr-3">📁</span> Documents
+                </a>
+                <div class="px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Account</div>
+                <a href="#" class="sidebar-item flex items-center px-6 py-3 transition-all">
+                    <span class="mr-3">⚙️</span> Settings
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-slate-800">
+                <button
+                    class="w-full flex items-center px-4 py-2 text-red-400 hover:bg-red-900/20 rounded-lg transition">
+                    <span class="mr-3">🚪</span> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Content column: keeps sidebar + one main column (avoids multi-section flex-row breakage) -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+            <!-- MAIN CONTENT AREA -->
+            <main id="dashboard-section" class="flex-1 flex flex-col overflow-hidden" aria-label="Dashboard">
+
+                <header
+                    class="h-20 bg-slate-900/50 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-8 sticky top-0 z-50">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="flex items-center bg-slate-950 rounded-xl px-4 py-2 w-80 border border-slate-800 focus-within:border-blue-500 transition-all">
+                            <span class="text-slate-500 text-sm">🔍</span>
+                            <input type="text" placehol5der="Search markets..."
+                                class="bg-transparent border-none focus:ring-0 text-xs w-full ml-3 text-slate-200">
+                        </div>
+                        <button
+                            class="bg-blue-600/10 text-blue-500 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition">
+                            Analyze
+                        </button>
+                    </div>
+                    <!--  BAckend code for nse -->
+                    <div
+                        class="flex items-center gap-6 bg-slate-950/50 px-6 py-2 rounded-[20px] border border-slate-800 shadow-inner">
+                        <div class="flex flex-col">
+                            <label class="text-[9px] text-slate-500 uppercase font-black tracking-tighter">Market
+                                Center</label>
+                            <select id="timezone-select"
+                                class="bg-transparent text-white text-xs font-bold outline-none cursor-pointer border-none p-0 focus:ring-0">
+                                <option value="America/New_York">New York (NYSE)</option>
+                                <option value="Europe/London">London (LSE)</option>
+                                <option value="Asia/Kolkata">Mumbai (NSE)</option>
+                            </select>
+                        </div>
+                        <div class="h-8 w-[1px] bg-slate-800"></div>
+                        <div class="text-right">
+                            <p id="active-market-time" class="text-lg font-mono font-bold text-blue-400 leading-none">
+                                00:00:00</p>
+                            <p id="active-market-date" class="text-[9px] text-slate-500 uppercase font-bold mt-1">
+                                Synchronizing...</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-6">
+                        <button class="relative p-2 text-slate-400 hover:text-white transition">
+                            <span>🔔</span>
+                            <span
+                                class="absolute top-1.5 right-1.5 h-2 w-2 bg-blue-500 rounded-full ring-2 ring-slate-900"></span>
+                        </button>
+                        <div class="flex items-center gap-3 pl-6 border-l border-slate-800">
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-slate-200 leading-none">Investor Pro</p>
+                                <span class="text-[9px] text-emerald-500 font-bold uppercase tracking-widest">Verified
+                                    Account</span>
+                            </div>
+                            <div
+                                class="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 border-2 border-slate-800 shadow-lg">
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="flex-1 overflow-y-auto p-8 space-y-10 bg-slate-950">
+
+                    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="stat-card group relative">
+                            <div class="flex justify-between items-start mb-6">
+                                <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest">Total
+                                    Portfolio</p>
+                                <span
+                                    class="p-2 bg-blue-500/10 rounded-xl text-blue-400 group-hover:scale-110 transition-transform">📊</span>
+                            </div>
+                            <h3 id="total-portfolio-value"
+                                class="text-3xl font-bold tracking-tight tabular-nums text-white">$124,500.00</h3>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span
+                                    class="flex items-center text-emerald-400 text-[10px] font-black bg-emerald-500/10 px-2 py-1 rounded-lg">
+                                    ▲ 2.4%
+                                </span>
+                                <span class="text-slate-600 text-[9px] uppercase font-bold tracking-tighter">Day
+                                    Performance</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card border-l-4 border-l-rose-500">
+                            <div class="flex justify-between items-start mb-6">
+                                <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest">STCG
+                                    Liability</p>
+                                <span class="text-xl">⚖️</span>
+                            </div>
+                            <h3 id="stcg-value" class="text-3xl font-bold tabular-nums text-slate-100">$0.00</h3>
+                            <p class="text-[9px] text-rose-500/80 mt-4 font-bold uppercase">Rate: 15% Apply</p>
+                        </div>
+
+                        <div class="stat-card border-l-4 border-l-emerald-500">
+                            <div class="flex justify-between items-start mb-6">
+                                <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest">LTCG
+                                    Liability</p>
+                                <span class="text-xl">💰</span>
+                            </div>
+                            <h3 id="ltcg-value" class="text-3xl font-bold tabular-nums text-slate-100">$0.00</h3>
+                            <p class="text-[9px] text-emerald-500/80 mt-4 font-bold uppercase">Rate: 10% Apply</p>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="flex justify-between items-start mb-4">
+                                <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest">Risk Profile
+                                </p>
+                                <span class="text-xl">🛡️</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-2">Moderate <span
+                                    class="text-amber-500">(65)</span>
+                            </h3>
+                            <div class="risk-meter-container">
+                                <div class="risk-fill" style="width: 65%;"></div>
+                            </div>
+                            <p class="text-[9px] text-slate-500 mt-2 font-bold uppercase tracking-widest">Stable Growth
+                            </p>
+                        </div>
+                    </section>
+
+                    <div class="flex justify-end pt-2 border-t border-slate-900">
+                        <button onclick="fetchTaxData()" id="tax-api-btn"
+                            class="bg-slate-900 hover:bg-blue-600 border border-slate-800 hover:border-blue-400 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-300 hover:text-white transition-all flex items-center gap-3">
+                            <span class="animate-spin text-xs">🔄</span> Sync Compliance API
+                        </button>
+                    </div>
+                </div>
+                <div id="options-section" class="hidden animate-section">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold">Options Trading Desk</h2>
+                            <p class="text-slate-500 text-sm">Derivative contracts for hedging and income.</p>
+                        </div>
+                        <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
+                            <button class="px-6 py-2 text-xs font-bold bg-blue-600 rounded-lg">Calls</button>
+                            <button class="px-6 py-2 text-xs font-bold text-slate-500">Puts</button>
+                        </div>
+                    </div>
+
+                    <!-- Option Chain Table -->
+                    <div class="bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
+                        <table class="w-full text-left">
+                            <thead
+                                class="bg-slate-950/50 text-slate-500 uppercase text-[10px] font-bold tracking-widest">
+                                <tr>
+                                    <th class="px-8 py-4">Strike Price</th>
+                                    <th class="px-8 py-4">LTP (Premium)</th>
+                                    <th class="px-8 py-4">Delta (Risk)</th>
+                                    <th class="px-8 py-4">OI (Liquidity)</th>
+                                    <th class="px-8 py-4 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm divide-y divide-slate-800/50">
+                                <tr class="hover:bg-blue-500/5 transition-all">
+                                    <td class="px-8 py-5 font-bold text-slate-100">$150.00</td>
+                                    <td class="px-8 py-5 text-emerald-400 font-mono">$4.20</td>
+                                    <td class="px-8 py-5 text-slate-400">0.65</td>
+                                    <td class="px-8 py-5 text-slate-400">12.4k</td>
+                                    <td class="px-8 py-5 text-right">
+                                        <button onclick="simulateOptionTrade('Call', 150, 4.20)"
+                                            class="bg-blue-600/20 text-blue-400 px-4 py-1.5 rounded-lg text-[10px] font-bold border border-blue-500/30 hover:bg-blue-600 hover:text-white">BUY
+                                            CALL</button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-blue-500/5 transition-all">
+                                    <td class="px-8 py-5 font-bold text-slate-100">$155.00</td>
+                                    <td class="px-8 py-5 text-emerald-400 font-mono">$2.85</td>
+                                    <td class="px-8 py-5 text-slate-400">0.42</td>
+                                    <td class="px-8 py-5 text-slate-400">8.1k</td>
+                                    <td class="px-8 py-5 text-right">
+                                        <button
+                                            class="bg-blue-600/20 text-blue-400 px-4 py-1.5 rounded-lg text-[10px] font-bold border border-blue-500/30">BUY
+                                            CALL</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Payoff Simulator Idea -->
+                    <div
+                        class="mt-8 bg-blue-600/5 border border-blue-500/20 p-6 rounded-2xl flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <span class="text-3xl">🎯</span>
+                            <div>
+                                <p class="text-sm font-bold text-slate-200">Probability of Profit (POP)</p>
+                                <p class="text-[10px] text-slate-500">Based on current Implied Volatility (IV)
+                                </p>
+                            </div>
+                        </div>
+                        <h2 class="text-3xl font-bold text-blue-400">68%</h2>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-slate-700 transition-all shadow-lg">
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Available Cash
+                        </p>
+                        <span class="p-2 bg-slate-800 rounded-lg text-slate-400">💳</span>
+                    </div>
+                    <h3 id="available-balance-value" class="text-3xl font-bold tracking-tight tabular-nums">
+                        $12,040.00</h3>
+                    <div class="mt-4">
+                        <button id="add-funds-btn"
+                            class="inline-flex items-center justify-center px-4 py-1.5 border border-blue-500/30 rounded-full text-blue-500 text-[10px] font-bold uppercase tracking-tighter hover:bg-blue-500 hover:text-white transition-colors w-full">
+                            + Quick Deposit
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-lg">
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Day's
+                            Performance
+                        </p>
+                        <span class="p-2 bg-emerald-500/10 rounded-lg text-emerald-500">💰</span>
+                    </div>
+                    <h3 class="text-3xl font-bold text-emerald-500 tracking-tight tabular-nums">+$2,140.50</h3>
+                    <p class="text-slate-500 text-[10px] mt-4 font-medium uppercase tracking-tight">Real-time
+                        valuation</p>
+                </div>
+
+                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-lg">
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Total Yield
+                        </p>
+                        <span class="p-2 bg-blue-500/10 rounded-lg text-blue-400">🛡️</span>
+                    </div>
+                    <h3 class="text-3xl font-bold text-blue-400 tracking-tight tabular-nums">18.4%</h3>
+                    <p class="text-slate-500 text-[10px] mt-4 font-medium uppercase tracking-tight">Graham
+                        Method
+                        Score: <span class="text-blue-500">A+</span></p>
+                </div>
+
+        </div>
+
+        <!-- GRAPHS & ALLOCATION ROW -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div class="lg:col-span-2 bg-slate-900 p-6 rounded-xl border border-slate-800 min-h-[350px]">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="font-bold">Performance History</h4>
+                    <div class="flex space-x-2 text-[10px]">
+                        <button class="px-2 py-1 bg-slate-800 rounded">1D</button>
+                        <button class="px-2 py-1 bg-blue-600 rounded">1M</button>
+                        <button class="px-2 py-1 bg-slate-800 rounded">1Y</button>
+                    </div>
+                </div>
+                <div class="h-64 relative">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 p-6 rounded-xl border border-slate-800">
+                <h4 class="font-bold mb-6">Asset Allocation</h4>
+                <div class="h-48 relative mb-6">
+                    <canvas id="allocationChart"></canvas>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs"><span class="text-blue-400">● Equity</span>
+                        <span>60%</span>
+                    </div>
+                    <div class="flex justify-between text-xs"><span class="text-emerald-400">● Debt</span>
+                        <span>30%</span>
+                    </div>
+                    <div class="flex justify-between text-xs"><span class="text-amber-400">● Gold</span>
+                        <span>10%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RISK & GOALS ROW -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Goal Progress -->
+            <div class="bg-slate-900 p-6 rounded-xl border border-slate-800">
+                <h4 class="font-bold mb-4">Goal Progress</h4>
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1"><span>Retirement Fund</span><span
+                                class="text-blue-500">65%</span></div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full">
+                            <div class="bg-blue-500 h-2 rounded-full" style="width: 65%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1"><span>New Home</span><span
+                                class="text-emerald-500">20%</span></div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full">
+                            <div class="bg-emerald-500 h-2 rounded-full" style="width: 20%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Profile Addon -->
+            <div class="bg-slate-900 p-6 rounded-xl border border-slate-800">
+                <p class="text-xs text-slate-500 uppercase">Portfolio Risk Score</p>
+                <h4 class="text-xl font-bold">Moderate (65/100)</h4>
+                <div class="risk-meter-container">
+                    <div class="risk-fill"></div>
+                </div>
+                <p class="text-[10px] text-slate-400">Based on Graham's defensive criteria. Rebalancing
+                    suggested in 14 days.</p>
+            </div>
+        </div>
+
+        <!-- TRANSACTION HISTORY SECTION -->
+        <div id="dashboard-transaction-history" class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                <h4 class="font-bold">Recent Transaction History</h4>
+                <button class="text-xs text-blue-500 hover:underline">View All Records</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-800/50 text-slate-500 uppercase text-[10px] tracking-widest">
+                        <tr>
+                            <th class="px-6 py-4">Transaction ID</th>
+                            <th class="px-6 py-4">Method</th>
+                            <th class="px-6 py-4">Amount</th>
+                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transaction-history-body">
+                        <tr class="border-b border-slate-800/50">
+                            <td class="px-6 py-4 font-mono text-xs text-slate-400">TXN_992834</td>
+                            <td class="px-6 py-4 text-xs">Initial Deposit</td>
+                            <td class="px-6 py-4 text-emerald-500 font-bold">+$12,040.00</td>
+                            <td class="px-6 py-4"><span
+                                    class="bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-full text-[10px]">SUCCESS</span>
+                            </td>
+                            <td class="px-6 py-4 text-xs text-slate-500">2026-03-15</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <script src="script.js"></script>
+</body>
+
+</html>
